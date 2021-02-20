@@ -14,7 +14,7 @@ jobs:
           name: イメージの.tarキャッシュがあればロード
           command: |
             set +o pipefail
-            docker load -i ~/cache/docker101tutorial.tar | true
+            docker load -i ~/caches/docker101tutorial.tar | true
       - run:
           name: イメージのビルド
           command: docker build --cache-from=docker101tutorial:latest -t docker101tutorial .
@@ -22,7 +22,7 @@ jobs:
           name: イメージのレイヤを.tarにまとめて保存
           command: |
             mkdir -p ~/caches
-            docker save -o ~/cache/docker101tutorial.tar docker101tutorial
+            docker save -o ~/caches/docker101tutorial.tar docker101tutorial
       - save_cache:
           paths:
             - ~/caches
