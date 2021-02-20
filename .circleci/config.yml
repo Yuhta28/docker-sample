@@ -6,21 +6,27 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - restore_cache:
+          keys:
+          - v1-image-{{ .Branch }}
+          - v1-image- 
       - run:
-          name: Docker Hubへログイン
-          command: docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-      - run:
-          name: 環境変数REGISTORY_URLの設定
-          command: echo 'export REGISTORY_URL=${DOCKER_USER}/docker101tutorial' >> $BASH_ENV
-      - run:
-          name: 指定イメージのプル
-          command: docker pull ${REGISTORY_URL}:latest
+          name: イメージの.tarキャッシュがあればロード
+          command: |
+            set +o pipefail
+            docker load -i ~/cache/docker101tutorial.tar | true
       - run:
           name: イメージのビルド
-          command: docker build -t ${REGISTORY_URL} --cache-from ${REGISTORY_URL}:latest .
+          command: docker build --cache-from=docker101tutorial:latest -t docker101tutorial .
       - run:
-          name: ビルドしたイメージはそのままプッシュが可能
-          command: docker push ${REGISTORY_URL}
+          name: イメージのレイヤを.tarにまとめて保存
+          command: |
+            mkdir -p ~/caches
+            docker save -o ~/cache/docker101tutorial.tar docker101tutorial
+      - save_cache:
+          paths:
+            - ~/caches
+          key: v1-image-{{ .Branch }}-{{ epoch }}
 
 workflows:
   version: 2
