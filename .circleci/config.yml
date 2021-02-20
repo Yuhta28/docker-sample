@@ -16,7 +16,7 @@ jobs:
             set +o pipefail
             docker load -i ~/caches/docker101tutorial.tar | true
       - run:
-          name: イメージのビルド
+          name: イメージのビルド(test)
           command: docker build --cache-from=docker101tutorial:latest -t docker101tutorial .
       - run:
           name: イメージのレイヤを.tarにまとめて保存
