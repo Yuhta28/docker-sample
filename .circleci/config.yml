@@ -1,35 +1,40 @@
 version: 2.1
 jobs:
-  build_and_push:
-    docker:
-      - image: cimg/ruby:2.6.5-node
+  build:
+    machine: true
     steps:
-      - checkout
-      - setup_remote_docker
-      - restore_cache:
-          keys:
-          - v1-image-{{ .Branch }}
-          - v1-image- 
+      - checkout 
       - run:
-          name: イメージの.tarキャッシュがあればロード
-          command: |
-            set +o pipefail
-            docker load -i ~/caches/docker101tutorial.tar | true
-      - run:
-          name: イメージのビルド(test)
-          command: docker build --cache-from=docker101tutorial:latest -t docker101tutorial .
+          name: イメージのビルド
+          command: docker build -t ${CIRCLE_PROJECT_REPONAME} .
       - run:
           name: イメージのレイヤを.tarにまとめて保存
           command: |
             mkdir -p ~/caches
-            docker save -o ~/caches/docker101tutorial.tar docker101tutorial
-      - save_cache:
+            docker save -o ~/caches/${CIRCLE_PROJECT_REPONAME}.tar ${CIRCLE_PROJECT_REPONAME}
+      - persist_to_workspace:
+          root: ~/
           paths:
-            - ~/caches
-          key: v1-image-{{ .Branch }}-{{ epoch }}
+            - caches
+  e2e:
+    machine: true
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      
+      - run:
+          name: イメージの.tarキャッシュがあればロード
+          command: |
+            set +o pipefail
+            docker load -i ~/caches/${CIRCLE_PROJECT_REPONAME}.tar | true
+      - run: docker images
 
 workflows:
   version: 2
   main:
     jobs:
-      - build_and_push
+      - build
+      - e2e:
+          requires:
+            - build
