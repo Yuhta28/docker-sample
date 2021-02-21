@@ -34,7 +34,7 @@ jobs:
           command: |
             docker run -d --name circleci-sample -p 3000:3000 ${CIRCLE_PROJECT_REPONAME} 
             sleep 10
-            docker exec circleci-sample curl --retry 10 --retry-connrefused http:localhost:3000
+            docker exec circleci-sample curl --retry 10 --retry-connrefused http://localhost:3000
       - run:
           name: sample/hello_world.txtファイルの作成
           command: mkdir -p sample && touch sample/hello_world.txt
